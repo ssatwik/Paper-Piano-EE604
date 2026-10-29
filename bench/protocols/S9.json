@@ -1,0 +1,25 @@
+{
+  "scenario": "S9",
+  "description": "Hover-height sweep and true-touch trials; use a spacer and a second camera",
+  "cues": [
+    {
+      "at": 3,
+      "height_cm": 1,
+      "label": "HOVER 1cm"
+    },
+    {
+      "at": 6,
+      "height_cm": 2,
+      "label": "HOVER 2cm"
+    },
+    {
+      "at": 9,
+      "height_cm": 3,
+      "label": "HOVER 3cm"
+    },
+    {
+      "at": 12,
+      "label": "TRUE TOUCH"
+    }
+  ]
+}

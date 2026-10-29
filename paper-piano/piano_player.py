@@ -1,7 +1,6 @@
 import os
 import re
-from threading import Thread
-from playsound import playsound
+import warnings
 
 
 UNIFORM_SOUND_SELECTION = 0
@@ -14,6 +13,7 @@ class PianoPlayer:
         
         self._group = []
         self.grouping = True
+        self._sound_cache = {}
         
         # Reads filenames
         self._sound_filenames = os.listdir(sounds_dir_path)
@@ -34,14 +34,30 @@ class PianoPlayer:
             selected_sounds = self._select_sounds_middle(number_of_keys)
         
         # Plays given keys
+        import pygame
+        if not pygame.mixer.get_init():
+            pygame.mixer.pre_init(44100, -16, 2, 256)
+            pygame.mixer.init()
+            pygame.mixer.set_num_channels(32)
         for index in play_indexes:
+            if index < 0 or index >= len(selected_sounds):
+                continue
             filename = selected_sounds[index]
-            # Creates and starts a new sound thread
-            Thread(target=playsound, args=(f"{self._dir}/{filename}",), daemon=True).start()
+            sound = self._sound_cache.get(filename)
+            if sound is None:
+                sound = self._sound_cache[filename] = pygame.mixer.Sound(f"{self._dir}/{filename}")
+            sound.play()
             
     def _select_sounds_uniform(self, number_of_keys: int) -> list[str]:
         # Selects given number of keys by selecting every n-th key
+        if number_of_keys > len(self._sound_filenames):
+            warnings.warn("Requested more piano keys than available samples; clamping to sample count", RuntimeWarning)
+        number_of_keys = max(0, min(number_of_keys, len(self._sound_filenames)))
+        if number_of_keys == 0:
+            return []
         lenght = len(self._sound_filenames)
+        if number_of_keys > lenght:
+            warnings.warn("Requested more piano keys than available samples; clamping to sample count", RuntimeWarning)
         
         # If number of keys is 1 returns middle element
         if number_of_keys == 1:
@@ -59,9 +75,11 @@ class PianoPlayer:
     def _select_sounds_middle(self, number_of_keys: int) -> list[str]:
         # Selects given number of keys from the middle of filelist
         # If number of keys is 1 returns middle element
+        lenght = len(self._sound_filenames)
+        number_of_keys = max(0, min(number_of_keys, lenght))
+        if number_of_keys == 0:
+            return []
         if number_of_keys == 1:
             return [self._sound_filenames[lenght//2]]
-
-        lenght = len(self._sound_filenames)
         start_index = (lenght - number_of_keys) // 2
         return self._sound_filenames[start_index:start_index + number_of_keys]

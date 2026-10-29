@@ -1,0 +1,21 @@
+{
+  "scenario": "S5",
+  "description": "Prompted presses during lighting changes",
+  "cues": [
+    {
+      "at": 3,
+      "key": 0,
+      "label": "LAMP OFF + KEY 0"
+    },
+    {
+      "at": 5,
+      "key": 3,
+      "label": "SHADOW + KEY 3"
+    },
+    {
+      "at": 7,
+      "key": 6,
+      "label": "LAMP ON + KEY 6"
+    }
+  ]
+}

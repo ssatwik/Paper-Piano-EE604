@@ -1,10 +1,6 @@
 import cv2
-import mediapipe as mp
 import numpy as np
 from cv2.typing import MatLike
-
-_mp_drawing = mp.solutions.drawing_utils
-_mp_hands = mp.solutions.hands
 
 class Keypoint:
     def __init__(self, hand: str, number: int, position: tuple[float, float]):

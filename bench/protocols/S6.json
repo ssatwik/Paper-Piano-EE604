@@ -1,0 +1,21 @@
+{
+  "scenario": "S6",
+  "description": "Prompted presses while paper shifts and camera is bumped",
+  "cues": [
+    {
+      "at": 3,
+      "key": 1,
+      "label": "KEY 1"
+    },
+    {
+      "at": 6,
+      "key": 4,
+      "label": "SHIFT PAPER + KEY 4"
+    },
+    {
+      "at": 9,
+      "key": 6,
+      "label": "BUMP CAMERA + KEY 6"
+    }
+  ]
+}

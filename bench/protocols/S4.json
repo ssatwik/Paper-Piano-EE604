@@ -1,0 +1,14 @@
+{
+  "scenario": "S4",
+  "description": "Rest or drag palm/forearm over keys without fingertip touch",
+  "cues": [
+    {
+      "at": 3,
+      "label": "PALM REST"
+    },
+    {
+      "at": 8,
+      "label": "PALM DRAG"
+    }
+  ]
+}

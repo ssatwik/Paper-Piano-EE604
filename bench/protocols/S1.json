@@ -1,0 +1,14 @@
+{
+  "scenario": "S1",
+  "description": "Slow left-to-right scale; press each key for 0.4 seconds with 0.6 seconds between cues.",
+  "cues": [
+    {"at": 3.0, "key": 0, "label": "KEY 0"},
+    {"at": 4.0, "key": 1, "label": "KEY 1"},
+    {"at": 5.0, "key": 2, "label": "KEY 2"},
+    {"at": 6.0, "key": 3, "label": "KEY 3"},
+    {"at": 7.0, "key": 4, "label": "KEY 4"},
+    {"at": 8.0, "key": 5, "label": "KEY 5"},
+    {"at": 9.0, "key": 6, "label": "KEY 6"},
+    {"at": 10.0, "key": 7, "label": "KEY 7"}
+  ]
+}

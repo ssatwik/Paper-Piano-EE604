@@ -1,0 +1,31 @@
+{
+  "scenario": "S2",
+  "description": "Chords and fast runs",
+  "cues": [
+    {
+      "at": 3,
+      "keys": [
+        0,
+        2,
+        4
+      ],
+      "label": "CHORD 0-2-4"
+    },
+    {
+      "at": 4,
+      "keys": [
+        1,
+        3,
+        5
+      ],
+      "label": "CHORD 1-3-5"
+    },
+    {
+      "at": 5,
+      "keys": [
+        0
+      ],
+      "label": "FAST RUN START"
+    }
+  ]
+}

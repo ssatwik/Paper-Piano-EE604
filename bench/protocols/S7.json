@@ -1,0 +1,21 @@
+{
+  "scenario": "S7",
+  "description": "Soft, medium, and loud strikes",
+  "cues": [
+    {
+      "at": 3,
+      "key": 2,
+      "label": "SOFT KEY 2"
+    },
+    {
+      "at": 5,
+      "key": 2,
+      "label": "MEDIUM KEY 2"
+    },
+    {
+      "at": 7,
+      "key": 2,
+      "label": "LOUD KEY 2"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "scenario": "S3",
+  "description": "Hand sweeps over keys without touching",
+  "cues": [
+    {
+      "at": 3,
+      "label": "SWEEP 1"
+    },
+    {
+      "at": 8,
+      "label": "SWEEP 2"
+    },
+    {
+      "at": 13,
+      "label": "SWEEP 3"
+    }
+  ]
+}

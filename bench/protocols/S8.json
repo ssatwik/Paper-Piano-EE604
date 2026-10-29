@@ -1,0 +1,30 @@
+{
+  "scenario": "S8",
+  "description": "Hold each key for 0.2, 0.5, 1.0, and 2.0 seconds",
+  "cues": [
+    {
+      "at": 3,
+      "key": 2,
+      "hold_s": 0.2,
+      "label": "HOLD 0.2s"
+    },
+    {
+      "at": 4,
+      "key": 2,
+      "hold_s": 0.5,
+      "label": "HOLD 0.5s"
+    },
+    {
+      "at": 5,
+      "key": 2,
+      "hold_s": 1.0,
+      "label": "HOLD 1.0s"
+    },
+    {
+      "at": 7,
+      "key": 2,
+      "hold_s": 2.0,
+      "label": "HOLD 2.0s"
+    }
+  ]
+}
