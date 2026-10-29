@@ -54,6 +54,8 @@ def main(argv=None):
     record_started=None
     if args.record: Path(args.record).parent.mkdir(parents=True,exist_ok=True)
     frozen=False
+    ui_message=""
+    message_until=0.0
     try:
         while True:
             if controls is not None:
@@ -86,18 +88,35 @@ def main(argv=None):
             if engine.last and engine.last[2].corners_cam is not None:
                 cv2.polylines(view,[engine.last[2].corners_cam.astype("int32")],True,(0,255,0),2)
             if hasattr(engine,"det"):
+                engine.det.draw_contour(view)
                 engine.det.draw_points(view)
+            else:
+                for i,candidate in enumerate(result.per_key):
+                    point=(int(candidate["x"]),int(candidate["y"]))
+                    cv2.circle(view,point,6,(255,0,0),2)
+                    cv2.putText(view,str(i),(point[0]-8,point[1]-10),cv2.FONT_HERSHEY_SIMPLEX,.55,(255,0,0),2)
             frozen=engine.frozen
             if controls is not None:
                 if controls.freeze_points.get() and not engine.frozen: engine.freeze()
                 elif not controls.freeze_points.get() and engine.frozen: sink.all_off(); engine.unfreeze()
-            cv2.putText(view,f"{result.status} | {'FROZEN' if frozen else 'SPACE: freeze'} | q: quit",(10,25),cv2.FONT_HERSHEY_SIMPLEX,.6,(20,220,20),2)
-            if result.per_key:
+            if hasattr(engine,"det"):
+                status=f"{result.status} | {len(engine.det.piano_points)} dots | SPACE: freeze | q: quit"
+            else:
+                status=(f"{result.status} | {len(result.per_key)} dots | SPACE: freeze | q: quit" if not frozen
+                    else f"{result.status} | {'FROZEN' if frozen else 'SPACE: freeze'} | q: quit")
+            cv2.putText(view,status,(10,25),cv2.FONT_HERSHEY_SIMPLEX,.6,(20,220,20),2)
+            if time.perf_counter()<message_until:
+                cv2.putText(view,ui_message,(10,75),cv2.FONT_HERSHEY_SIMPLEX,.65,(0,0,255),2)
+            if result.per_key and frozen:
                 for i,row in enumerate(result.per_key):
                     color=(0,0,255) if row["state"]=="HELD" else (255,100,0)
                     cv2.putText(view,f"{i}:{row['ncc']:.2f}",(10+i*65,50),cv2.FONT_HERSHEY_SIMPLEX,.5,color,1)
             if args.debug_overlay and result.overlays.get("warped") is not None:
                 cv2.imshow("Canonical",result.overlays["warped"])
+            if args.debug_overlay and result.overlays.get("edges") is not None:
+                cv2.imshow("Paper edges",result.overlays["edges"])
+            if args.debug_overlay and result.overlays.get("dot_mask") is not None:
+                cv2.imshow("Dot threshold",result.overlays["dot_mask"])
             cv2.imshow("Paper Piano",view)
             if args.record:
                 if writer is None: writer=cv2.VideoWriter(args.record,cv2.VideoWriter_fourcc(*"mp4v"),30,(frame.shape[1],frame.shape[0]))
@@ -107,7 +126,11 @@ def main(argv=None):
             if key==ord(' '):
                 if engine.frozen:
                     sink.all_off(); engine.unfreeze()
-                else: engine.freeze()
+                elif engine.freeze():
+                    ui_message="Layout frozen"; message_until=time.perf_counter()+2
+                else:
+                    ui_message="Freeze failed: show the full paper and at least 2 clear dots"
+                    message_until=time.perf_counter()+4
     finally:
         sink.all_off(); engine.close(); sink.close(); cap.release()
         if cap_b: cap_b.release()

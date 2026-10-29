@@ -58,7 +58,7 @@ def find_quads(gray, blur=10, canny1=40, canny2=40, min_area_frac=0.03):
     return sorted(quads, key=cv2.contourArea, reverse=True)
 
 
-def extract_dots(warp_gray):
+def extract_dots(warp_gray, return_mask=False):
     extraction = cv2.GaussianBlur(warp_gray, (11, 11), 2)
     extraction = cv2.adaptiveThreshold(extraction, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
                                        cv2.THRESH_BINARY_INV, 11, 2)
@@ -72,9 +72,15 @@ def extract_dots(warp_gray):
         if w > 6 and h > 6:
             items.append(((x+w/2, y+h/2), (x, y, w, h)))
     items.sort(key=lambda item: item[0][0])
-    if not items:
-        return np.empty((0, 2), np.float32), []
-    return np.asarray([p for p, _ in items], np.float32), [b for _, b in items]
+    dots=np.asarray([p for p, _ in items], np.float32) if items else np.empty((0, 2), np.float32)
+    boxes=[b for _, b in items]
+    return (dots,boxes,extraction) if return_mask else (dots,boxes)
+
+
+def debug_edges(gray, blur=10, canny1=40, canny2=40):
+    k=max(1,int(blur)*2+1)
+    edges=cv2.Canny(cv2.GaussianBlur(gray,(k,k),0),canny1,canny2,L2gradient=True)
+    return cv2.dilate(edges,np.ones((4,4),np.uint8))
 
 
 class PaperTracker:

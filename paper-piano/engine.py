@@ -4,7 +4,7 @@ import time
 import cv2
 import numpy as np
 import detection, validation
-from tracking import PaperTracker, TrackResult, extract_dots, CANON_W
+from tracking import PaperTracker, TrackResult, extract_dots, debug_edges, CANON_W
 from occlusion import OcclusionScorer
 from hands import HandTracker
 from touch import TouchFusion, NoteEvent
@@ -49,6 +49,7 @@ class PaperPianoEngine:
         started = time.perf_counter()
         work, gray = self._prepare(frames[0] if isinstance(frames, (list, tuple)) else frames)
         track = self.tracker.update(gray, t)
+        track_ms = (time.perf_counter()-started)*1000
         if self.frozen and not self.cfg.use_tracking and self.H_fixed is not None:
             track = TrackResult(self.H_fixed.copy(), self.corners_fixed.copy(), 1.0, "tracking")
         self.last = (work, gray, track)
@@ -59,17 +60,32 @@ class PaperPianoEngine:
             work_b, gray_b = self._prepare(frames[1])
             track_b = self.tracker_b.update(gray_b, t)
             self.last_b = (work_b, gray_b, track_b)
-        track_ms = (time.perf_counter()-started)*1000
         if not self.frozen:
+            searching=[]
+            overlays={}
+            size=self.canon_size
+            if track.H_cam2canon is not None and track.corners_cam is not None:
+                aspect=(np.linalg.norm(track.corners_cam[0]-track.corners_cam[3])+np.linalg.norm(track.corners_cam[1]-track.corners_cam[2]))/max(
+                    np.linalg.norm(track.corners_cam[0]-track.corners_cam[1])+np.linalg.norm(track.corners_cam[3]-track.corners_cam[2]),1)
+                size=(CANON_W,max(80,int(round(CANON_W*aspect))))
+                candidate_warp=cv2.warpPerspective(work,track.H_cam2canon,size)
+                candidates,_,dot_mask=extract_dots(cv2.cvtColor(candidate_warp,cv2.COLOR_BGR2GRAY),return_mask=True)
+                if len(candidates):
+                    camera_pts=cv2.perspectiveTransform(candidates.reshape(-1,1,2),np.linalg.inv(track.H_cam2canon)).reshape(-1,2)
+                    searching=[{"x":float(p[0]),"y":float(p[1]),"state":"SEARCHING"} for p in camera_pts]
+                overlays["warped"]=candidate_warp
+                overlays["dot_mask"]=dot_mask
+            overlays["edges"]=debug_edges(gray,self.cfg.blur,self.cfg.canny1,self.cfg.canny2)
             if self.cfg.auto_freeze and track.H_cam2canon is not None:
-                warped = cv2.warpPerspective(work, track.H_cam2canon, self.canon_size)
+                warped = cv2.warpPerspective(work, track.H_cam2canon, size)
                 dots, _ = extract_dots(cv2.cvtColor(warped, cv2.COLOR_BGR2GRAY))
                 if len(dots) >= 2 and self.previous_dots is not None and len(dots)==len(self.previous_dots) and np.mean(np.linalg.norm(dots-self.previous_dots,axis=1)) < 2:
                     self.stable += 1
                 else: self.stable = 0
                 self.previous_dots = dots
                 if self.stable >= 30: self.freeze()
-            return FrameResult([], track.status, timings_ms={"track":track_ms,"total":(time.perf_counter()-started)*1000})
+            return FrameResult([], track.status, searching, overlays,
+                {"track":track_ms,"total":(time.perf_counter()-started)*1000})
         if track.status == "lost" or track.H_cam2canon is None or (track_b is not None and (track_b.status == "lost" or track_b.corners_cam is None)):
             events = self.fusion.all_off(t)
             return FrameResult(events, "lost", timings_ms={"track":track_ms,"total":(time.perf_counter()-started)*1000})
